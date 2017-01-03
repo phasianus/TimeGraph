@@ -1,0 +1,203 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+	<head>
+		<link rel='stylesheet'  href='./graph.css' type='text/css' media='all' />
+		
+		<script type="text/javascript">
+		
+		
+			var data = {
+					yLabels: [-5, 0, 5, 10, 15],
+					// absolutní čas: 2016-3-27 14:30"
+					// relativní vůči předchozímu "+3m" "+1h"
+					// relatvní několikrát "+3m*10"
+					
+					timeAxis: ["2017-01-30T08:30", "+2m*4"]
+					xLabels: [8,10,12,14,16,18,20,22,24,2],
+					xbLabels: {24: "4.1."},
+					points: [8.4, 5.3,  
+					          8.8, 7.7, 
+					          9.1, 10.1,  
+					          11, 10.4,  
+					          12.8, 14,
+					          15.4, 14,
+					          15.9, 13
+					          ]
+			};
+		
+			
+			function parseTimes(input) {
+				var out = [];
+				
+				for (var i in input) {
+					
+					var e = input[0].trim();
+					
+					if (e.startsWith("+")) {
+						
+						var a = e.split("*");
+						var m = a[0].trim().substring(1);
+						var ind;
+						
+						if (m.endsWith("m")) {
+							ind = 1;
+						} else if (m.endsWith("d")) {
+							ind = 60 * 24;
+						} else  if (m.endsWith("h")) {
+							int = 60;
+						}
+						
+						var d = parseInt(m,10)*ind*60000;
+						
+						out.push(new Date(out[out.length-1].getTime() + d));
+						
+						if (a.length > 1) {
+							var mult = parseInt(a[1], 10);
+							for (; mult>1; mult--) {
+								out.push(new Date(out[out.length-1].getTime() + d));
+							}
+						}
+						
+					} else {
+						out.push(Date.parse(e));                                                  
+					}
+				}
+				return out;
+			}
+			
+			var svgNS = "http://www.w3.org/2000/svg"; 
+		
+			function addLabel(parent, text, x, y) {	
+				var t = document.createElementNS(svgNS,"text");
+				t.setAttributeNS(null,"x",x);
+				t.setAttributeNS(null,"y",y);
+				t.appendChild(document.createTextNode(text));
+				parent.appendChild(t);
+			
+			}
+			
+			
+			function addGridLine(parent, x1, y1, x2, y2) {
+				var t = document.createElementNS(svgNS,"line");
+				t.setAttributeNS(null,"x1",x1);
+				t.setAttributeNS(null,"y1",y1);
+				t.setAttributeNS(null,"x2",x2);
+				t.setAttributeNS(null,"y2",y2);
+				t.setAttributeNS(null, "class", "gridline")
+				parent.appendChild(t);
+			}
+			
+			
+			function addXLabel(text, x) {
+				var p = document.getElementById("x-labels");
+				addGridLine(document.getElementById("x-labels-ax"), x, "100%", x, 0);
+				addLabel(p, text, x, "100%");
+				addGridLine(document.getElementById("xGrid"), x, 0, x, "100%");
+			}
+			
+			function addXbLabel(text, x) {
+				addLabel(document.getElementById("x-labels-bx"), text, x, "100%");
+			}
+			
+		
+			function addYLabel(text, y) {
+				addLabel(document.getElementById("y-labels"), text, 0, y);
+				addGridLine(document.getElementById("yGrid"), 0, y, "100%", y);
+				addGridLine(document.getElementById("y-labels-ax"), 0, y, "100%", y);
+			}
+			
+			function addPoint(x, y) {
+				var myCircle = document.createElementNS(svgNS,"circle"); 
+			    myCircle.setAttributeNS(null,"cx",x);
+			    myCircle.setAttributeNS(null,"cy",y);
+			    myCircle.setAttributeNS(null,"r",2);
+			    myCircle.setAttributeNS(null,"fill","black");
+			    myCircle.setAttributeNS(null,"stroke","none");
+				document.getElementById("graph").appendChild(myCircle)
+			}
+			
+			function showGraph() {
+				
+				var maxX = Number.MIN_VALUE;
+				var minX = Number.MAX_VALUE;
+				
+				var maxY = Number.MIN_VALUE;
+				var minY = Number.MAX_VALUE;
+				
+				
+				for (var i in data.xLabels) {
+					if (data.xLabels[i] > maxX) maxX = data.xLabels[i];
+					if (data.xLabels[i] < minX) minX = data.xLabels[i];
+				}
+				for (var i in data.yLabels) {
+					if (data.yLabels[i] > maxY) maxY = data.yLabels[i];
+					if (data.yLabels[i] < minY) minY = data.yLabels[i];
+				}
+				
+				
+				var tX = function(x) {
+					return ((x - minX)/(maxX - minX) * 100) + "%";
+				}	
+				
+				var tY = function (y) {
+					return (100 - ((y - minY) / (maxY - minY) *100)) + "%";
+				}
+				
+				for (var i in data.xLabels) {
+					addXLabel(data.xLabels[i] + "", tX(data.xLabels[i]));
+				}
+				
+				for (var i in data.yLabels) {
+					addYLabel(data.yLabels[i] + "", tY(data.yLabels[i]));			
+				}
+				
+
+				for (var i in data.xbLabels) {
+					
+					addXbLabel(data.xbLabels[i], tX(i));	
+				}
+				
+				for (var i=0; i<data.points.length; i += 2) {
+										
+					addPoint(tX(data.points[i]), tY(data.points[i+1]));
+				}
+				
+			}
+			
+			
+		</script>
+		
+	</head>
+	<body onload="showGraph();">
+	<div style="width:600px;height:400px">
+	<svg version="1.2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+	  class="graphcont"  aria-labelledby="title" role="img">
+	  
+  		<title id="title">A line chart showing some information</title>
+  		
+  		<g class="graph" id="graph">
+  		
+			<g class="grid x-grid" id="xGrid">
+			</g>
+		
+		
+			<g class="grid y-grid" id="yGrid">
+			</g>
+		
+			<g id="x-labels" class="labels x-labels" transform="translate(0,14)">
+			</g>
+			
+			<g id="x-labels-bx" transform="translate(0,28)"></g>
+			
+			<g id="x-labels-ax" transform="translate(0,4)"></g>
+			
+			<g id="y-labels" class="labels y-labels" transform="translate(-4,3)"></g>
+
+			<g id="y-labels-ax" transform="translate(-4, 0)"></g>			
+			
+		</g>
+		
+	</svg>
+	</div>
+	</body>
+</html>
