@@ -34,6 +34,11 @@
 					var e = input[0].trim();
 					
 					if (e.startsWith("+")) {
+						// lepe: var r = /^(\d+)(\s*)(m|h|d)(\s*)((\*)(\s*)(\d+))?$/.exec("1m");
+						// rozhoduje r[5];
+						var r = /^(\d+)(\s*)(m|h|d)(\s*)((\*)(\s*)(\d+))?$/.exec(e.substring(1).trim());
+						if (! r) console.log("Bad format: '" + e + "'");
+						//TODO:
 						
 						var a = e.split("*");
 						var m = a[0].trim().substring(1);
@@ -44,7 +49,7 @@
 						} else if (m.endsWith("d")) {
 							ind = 60 * 24;
 						} else  if (m.endsWith("h")) {
-							int = 60;
+							ind = 60;
 						}
 						
 						var d = parseInt(m,10)*ind*60000;
