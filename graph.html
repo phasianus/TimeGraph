@@ -12,7 +12,7 @@
 					// relativní vůči předchozímu "+3m" "+1h"
 					// relatvní několikrát "+3m*10"
 					
-					timeAxis: ["2017-01-30T08:30", "+2m*4"]
+					timeAxis: ["2017-01-30T08:30", "+2m*4"],
 					xLabels: [8,10,12,14,16,18,20,22,24,2],
 					xbLabels: {24: "4.1."},
 					points: [8.4, 5.3,  
@@ -29,42 +29,30 @@
 			function parseTimes(input) {
 				var out = [];
 				
-				for (var i in input) {
+				for (var i=0; i<input.length; i++) {
 					
-					var e = input[0].trim();
+					var e = input[i].trim();
 					
 					if (e.startsWith("+")) {
-						// lepe: var r = /^(\d+)(\s*)(m|h|d)(\s*)((\*)(\s*)(\d+))?$/.exec("1m");
-						// rozhoduje r[5];
-						var r = /^(\d+)(\s*)(m|h|d)(\s*)((\*)(\s*)(\d+))?$/.exec(e.substring(1).trim());
+						var r = /^(\d+)(\s*)(m|h|d)(\s*)((\*)(\s*)(\d+))?$/.exec(e.substring(1).trim());						
 						if (! r) console.log("Bad format: '" + e + "'");
-						//TODO:
+					
+							
+						var f = {
+							m: 1,
+							h: 60,
+							d: 60*24
+						}	
 						
-						var a = e.split("*");
-						var m = a[0].trim().substring(1);
-						var ind;
-						
-						if (m.endsWith("m")) {
-							ind = 1;
-						} else if (m.endsWith("d")) {
-							ind = 60 * 24;
-						} else  if (m.endsWith("h")) {
-							ind = 60;
-						}
-						
-						var d = parseInt(m,10)*ind*60000;
-						
-						out.push(new Date(out[out.length-1].getTime() + d));
-						
-						if (a.length > 1) {
-							var mult = parseInt(a[1], 10);
-							for (; mult>1; mult--) {
-								out.push(new Date(out[out.length-1].getTime() + d));
-							}
+						var d = parseInt(r[1], 10) * f[r[3]] * 60000;
+
+						var n = r[5] ? parseInt(r[8], 10) : 1;
+						for (; n>0; n--) {
+							out.push(new Date(out[out.length - 1].getTime() + d));
 						}
 						
 					} else {
-						out.push(Date.parse(e));                                                  
+						out.push(new Date(Date.parse(e)));                                                  
 					}
 				}
 				return out;
@@ -122,6 +110,16 @@
 			}
 			
 			function showGraph() {
+				
+				var n = parseTimes(data.timeAxis);
+				
+				
+				var show = "";
+				for (var i in n) {
+					show = show + n[i] + "\n";
+				}
+
+				alert(show);
 				
 				var maxX = Number.MIN_VALUE;
 				var minX = Number.MAX_VALUE;
