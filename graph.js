@@ -5,10 +5,10 @@ function timeGraph(parent, data) {
 	var element = function(name, attributes, children = []) {
 		try {
 		var e = document.createElementNS(svgNS, name);
-		for (i in attributes) {
+		for (var i in attributes) {
 			e.setAttributeNS(null, i, attributes[i]);
 		}
-		for (i in children) {
+		for (var i in children) {
 			e.appendChild(children[i]);
 		}
 		return e;
@@ -19,6 +19,7 @@ function timeGraph(parent, data) {
 
 	this.xGrid = element("g",   {class: "grid x-grid",  id:"xGrid"});
 	this.yGrid = element("g",   {class: "grid y-grid",  id:"yGrid"});
+	this.points = element("g", {class: "points", id: "points"});
 	this.xLabels = element("g", {id: "x-labels", class:"labels x-labels", transform: "translate(0,14)"});
 	this.xLabelsBx = element("g", {id:"x-labels-bx",  class:"labels", transform:"translate(0,28)"});
 	this.xLabelsAx = element("g", {id:"x-labels-ax", class:"labels", transform:"translate(0,4)"});
@@ -29,7 +30,7 @@ function timeGraph(parent, data) {
 			{version: "1.2", 
 	         class: "graphcont",  'aria-labelledby': "title", role: "img"}, 
 	        [element("title", {}, [document.createTextNode(data.title)]),
-	         element("g", {class:"graph", id:"graph"}, [xGrid, yGrid, xLabels, xLabelsBx, xLabelsAx, yLabels, yLabelsAx])]);
+	         element("g", {class:"graph", id:"graph"}, [xGrid, yGrid, xLabels, xLabelsBx, xLabelsAx, yLabels, yLabelsAx, points,])]);
 	
 	graph.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns", "http://www.w3.org/2000/svg");
 	graph.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
@@ -41,8 +42,8 @@ function timeGraph(parent, data) {
 	}
 		
 	var printDate = function(date) {
-		return date.toLocaleDateString();
-		//return date.getDate() + "." + (date.getMonth() + 1) + ".";
+		//return date.toLocaleDateString();
+		return date.getDate() + "." + (date.getMonth() + 1) + ".";
 	}
 		
 	var parseTimes = function parseTimes(input) {
@@ -102,7 +103,7 @@ function timeGraph(parent, data) {
 	}
 	
 	var addPoint = function(x, y) {
-		graph.appendChild(element("circle", {cx: x, cy: y, r: 2, fill: "black", stroke: "none"}));
+		points.appendChild(element("circle", {cx: x, cy: y, r: 2, fill: "black", stroke: "none"}));
 	}
 	
 	
@@ -138,12 +139,12 @@ function timeGraph(parent, data) {
 
 	for (var i=0; i<n.length; i++) {
 	
-		//addXLabel((n[i].getHours() + ":" + n[i].getMinutes() + (n[i].getMinutes() < 9 ? "0" :"")), tX(n[i].getTime() / 60000));
-		addXLabel("AAA", 10);
+		addXLabel((n[i].getHours() + ":" + n[i].getMinutes() + (n[i].getMinutes() < 9 ? "0" :"")), tX(n[i].getTime() / 60000));
+		
 		//try {
 			if (d != n[i].getDate()) {
 				d = n[i].getDate();
-				addXbLabel("x" + (n[i]), tX(n[i].getTime()/60000));		
+				addXbLabel(printDate(n[i]), tX(n[i].getTime()/60000));		
 			}
 		//} catch (err) { alert("Error adding '" + i + "'");}
 	}
