@@ -1,9 +1,13 @@
 function timeGraph(parent, data) {
 	
+	if (typeof parent === 'string') {
+		parent = document.getElementById(parent);
+	}
+	
 	var svgNS = "http://www.w3.org/2000/svg"; 
 	
 	var element = function(name, attributes, children = []) {
-		try {
+		
 		var e = document.createElementNS(svgNS, name);
 		for (var i in attributes) {
 			e.setAttributeNS(null, i, attributes[i]);
@@ -12,9 +16,6 @@ function timeGraph(parent, data) {
 			e.appendChild(children[i]);
 		}
 		return e;
-		} catch (err) {
-			alert("Error on creating element: " + name + " [" + err + "]");
-		}
 	}
 
 	this.xGrid = element("g",   {class: "grid x-grid",  id:"xGrid"});
@@ -35,11 +36,11 @@ function timeGraph(parent, data) {
 	graph.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns", "http://www.w3.org/2000/svg");
 	graph.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
 
-	try {
+	//try {
 		parent.appendChild(graph);
-	} catch (err) {
-		alert("Error appending  " + graph + " to " + parent);
-	}
+	//} catch (err) {
+	//	alert("Error appending  " + graph + " to " + parent);
+	//}
 		
 	var printDate = function(date) {
 		//return date.toLocaleDateString();
@@ -130,8 +131,6 @@ function timeGraph(parent, data) {
 		return (100 - ((y - minY) / (maxY - minY) *100)) + "%";
 	}
 	
-	
-	
 	addXbLabel(printDate(n[0]), tX(n[0].getTime()/60000));
 
 	var d = n[0].getDate();
@@ -141,12 +140,10 @@ function timeGraph(parent, data) {
 	
 		addXLabel((n[i].getHours() + ":" + n[i].getMinutes() + (n[i].getMinutes() < 9 ? "0" :"")), tX(n[i].getTime() / 60000));
 		
-		//try {
-			if (d != n[i].getDate()) {
-				d = n[i].getDate();
-				addXbLabel(printDate(n[i]), tX(n[i].getTime()/60000));		
-			}
-		//} catch (err) { alert("Error adding '" + i + "'");}
+		if (d != n[i].getDate()) {
+			d = n[i].getDate();
+			addXbLabel(printDate(n[i]), tX(n[i].getTime()/60000));		
+		}
 	}
 	
 	for (var i in data.yLabels) {

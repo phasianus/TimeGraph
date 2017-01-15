@@ -14,164 +14,22 @@
 					// relativní vůči předchozímu "+3m" "+1h"
 					// relativní několikrát "+3m*10"
 					
-					timeAxis: ["2017-01-30T18:30", "+30m*14"],
-					points: ["2017-01-30T18:31", 10,
-					         "2017-01-30T18:39", 7.7, 
-					         "2017-01-30T18:50", 10.1,  
-					         "2017-01-30T19:01", 10.4,  
-					         "2017-01-30T19:30", 14,
-					         "2017-01-30T19:41", 14,
-					         "2017-01-30T20:28", 13
+					timeAxis: ["2017-01-31T18:30", "+30m*14"],
+					points: ["2017-01-31T18:31", 10,
+					         "2017-01-31T18:39", 7.7, 
+					         "2017-01-31T18:50", 10.1,  
+					         "2017-01-31T19:01", 10.4,  
+					         "2017-01-31T19:30", 14,
+					         "2017-01-31T19:41", 14,
+					         "2017-01-31T20:28", 13
 					          ]
 			};
 		
-			
-			function parseTimes(input) {
-				var out = [];
-				
-				for (var i=0; i<input.length; i++) {
-					
-					var e = input[i].trim();
-					
-					if (e.startsWith("+")) {
-						var r = /^(\d+)(\s*)(m|h|d)(\s*)((\*)(\s*)(\d+))?$/.exec(e.substring(1).trim());						
-						if (! r) console.log("Bad format: '" + e + "'");
-					
-							
-						var f = {
-							m: 1,
-							h: 60,
-							d: 60*24
-						}	
-						
-						var d = parseInt(r[1], 10) * f[r[3]] * 60000;
-
-						var n = r[5] ? parseInt(r[8], 10) : 1;
-						for (; n>0; n--) {
-							out.push(new Date(out[out.length - 1].getTime() + d));
-						}
-						
-					} else {
-						out.push(new Date(Date.parse(e)));                                                  
-					}
-				}
-				return out;
-			}
-			
-			var svgNS = "http://www.w3.org/2000/svg"; 
-		
-			function addLabel(parent, text, x, y) {	
-				parent.appendChild(newElement(svgNS,"text", {x: x, y: y}, [document.createTextNode(text)]));
-			
-			}
-			
-			
-			function addGridLine(parent, x1, y1, x2, y2) {
-				parent.appendChild(newElement(svgNS, "line", {x1: x1, y1: y1, x2: x2, y2: y2, class: "gridLine"}));
-			}
-			
-			
-			function addXLabel(text, x) {
-				var p = document.getElementById("x-labels");
-				addGridLine(document.getElementById("x-labels-ax"), x, "100%", x, 0);
-				addLabel(p, text, x, "100%");
-				addGridLine(document.getElementById("xGrid"), x, 0, x, "100%");
-			}
-			
-			function addXbLabel(text, x) {
-				addLabel(document.getElementById("x-labels-bx"), text, x, "100%");
-			}
-			
-		
-			function addYLabel(text, y) {
-				addLabel(document.getElementById("y-labels"), text, 0, y);
-				addGridLine(document.getElementById("yGrid"), 0, y, "100%", y);
-				addGridLine(document.getElementById("y-labels-ax"), 0, y, "100%", y);
-			}
-			
-			function newElement(namespace, name, attributes, children = []) {
-				var e = document.createElementNS(namespace, name);
-				for (i in attributes) {
-					e.setAttributeNS(null, i, attributes[i]);
-				}
-				for (i in children) {
-					e.appendChild(children[i]);
-				}
-				
-				return e;
-			}
-			
-			function addPoint(x, y) {
-				document.getElementById("graph")
-					.appendChild(newElement(svgNS, "circle", {cx: x, cy: y, r: 2, fill: "black", stroke: "none"}));
-			}
-			
-			function showGraph() {
-				
-				
-				
-				
-				
-				var n = parseTimes(data.timeAxis);
-				
-				var maxX = n[n.length-1].getTime() / 60000;
-				var minX = n[0].getTime() / 60000;
-				
-				var maxY = Number.MIN_VALUE;
-				var minY = Number.MAX_VALUE;
-				
-				
-				for (var i in data.yLabels) {
-					if (data.yLabels[i] > maxY) maxY = data.yLabels[i];
-					if (data.yLabels[i] < minY) minY = data.yLabels[i];
-				}
-				
-				
-				var tX = function(x) {
-					return ((x - minX)/(maxX - minX) * 100) + "%";
-				}	
-				
-				var tY = function (y) {
-					return (100 - ((y - minY) / (maxY - minY) *100)) + "%";
-				}
-				
-				
-
-				addXbLabel(printDate(n[0]), tX(n[0].getTime()/60000));
-				var d = n[0].getDate();
-				for (var i=0; i<n.length; i++) {
-					
-					addXLabel((n[i].getHours() + ":" + n[i].getMinutes() + (n[i].getMinutes() < 9 ? "0" :"")), tX(n[i].getTime() / 60000));
-					if (d != n[i].getDate()) {
-						d = n[i].getDate();
-						addXbLabel(printDate(n[i]), tX(n[i].getTime()/60000));
-						
-					}
-				}
-				
-				
-				
-				for (var i in data.yLabels) {
-					addYLabel(data.yLabels[i] + "", tY(data.yLabels[i]));			
-				}
-				
-				for (var i=0; i<data.points.length; i += 2) {
-											
-					addPoint(tX(Date.parse(data.points[i]) / 60000), tY(data.points[i+1]));
-				}
-				
-			}
-			
-			function printDate(date) {
-				return date.toLocaleDateString();
-				//return date.getDate() + "." + (date.getMonth() + 1) + ".";
-			}
-			
 		</script>
 		<script src="graph.js">/**/</script>
 		
 	</head>
-	<body onload="showGraph(); timeGraph(document.getElementById('graphCont'), data);">
+	<body onload="timeGraph('graphCont', data);">
 	<div style="width:600px;height:400px">
 	<svg version="1.2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
 	  class="graphcont"  aria-labelledby="title" role="img">
@@ -180,15 +38,11 @@
   		
   		<g class="graph" id="graph">
   		
-			<g class="grid x-grid" id="xGrid">
-			</g>
+			<g class="grid x-grid" id="xGrid"></g>
 		
+			<g class="grid y-grid" id="yGrid"></g>
 		
-			<g class="grid y-grid" id="yGrid">
-			</g>
-		
-			<g id="x-labels" class="labels x-labels" transform="translate(0,14)">
-			</g>
+			<g id="x-labels" class="labels x-labels" transform="translate(0,14)"></g>
 			
 			<g id="x-labels-bx" class="labels" transform="translate(0,28)"></g>
 			
