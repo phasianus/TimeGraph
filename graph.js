@@ -4,6 +4,10 @@ function timeGraph(parent, data) {
 		parent = document.getElementById(parent);
 	}
 	
+	var valueRow = [1,2,5,10];
+
+	var timeRow = [10,15,30,60,180];
+	
 	var svgNS = "http://www.w3.org/2000/svg"; 
 	
 	var element = function(name, attributes, children = []) {
@@ -36,11 +40,8 @@ function timeGraph(parent, data) {
 	graph.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns", "http://www.w3.org/2000/svg");
 	graph.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
 
-	//try {
-		parent.appendChild(graph);
-	//} catch (err) {
-	//	alert("Error appending  " + graph + " to " + parent);
-	//}
+	parent.appendChild(graph);
+	
 		
 	var printDate = function(date) {
 		//return date.toLocaleDateString();
@@ -89,6 +90,7 @@ function timeGraph(parent, data) {
 	
 	var addXLabel = function(text, x) {
 		addGridLine(xLabelsAx, x, "100%", x, 0);
+	
 		addLabel(xLabels, text, x, "100%");
 		addGridLine(xGrid, x, 0, x, "100%");
 	}
@@ -107,22 +109,7 @@ function timeGraph(parent, data) {
 		points.appendChild(element("circle", {cx: x, cy: y, r: 2, fill: "black", stroke: "none"}));
 	}
 	
-	
-	var n = parseTimes(data.timeAxis);
-	
-	var maxX = n[n.length-1].getTime() / 60000;
-	var minX = n[0].getTime() / 60000;
-	
-	var maxY = Number.MIN_VALUE;
-	var minY = Number.MAX_VALUE;
-	
-	
-	for (var i in data.yLabels) {
-		if (data.yLabels[i] > maxY) maxY = data.yLabels[i];
-		if (data.yLabels[i] < minY) minY = data.yLabels[i];
-	}
-	
-	
+
 	var tX = function(x) {
 		return ((x - minX)/(maxX - minX) * 100) + "%";
 	}	
@@ -130,6 +117,95 @@ function timeGraph(parent, data) {
 	var tY = function (y) {
 		return (100 - ((y - minY) / (maxY - minY) *100)) + "%";
 	}
+	
+	
+	// X labels
+	var X_LABELS_NUM=10;
+	var n, maxX = 0, minX=Number.MAX_VALUE;
+	
+	if (data.timeAxis) {
+	
+		n = parseTimes(data.timeAxis);
+	
+		maxX = n[n.length-1].getTime() / 60000;
+		minX = n[0].getTime() / 60000;
+	} else {
+		var mi=Number.MAX_VALUE, mx=0, o;
+		for (var i=0; i<data.points.length; i+=2) {
+			var m = Date.parse(data.points[i]) / 60000;
+			if (m < minX) minX = m;
+			if (m > maxX) maxX = m;
+		}
+		alert("Time axis: " + new Date(minX*60000) + " -- " + new Date(maxX*60000) );
+		for (var i in timeRow) {
+			mi = minX - (minX  % timeRow[i]);
+			mx = maxX + (timeRow[i] - (maxX % timeRow[i]));
+			if ((mx - mi) / timeRow[i]  <= X_LABELS_NUM) {
+				o = timeRow[i];
+				break;
+			}
+		}
+
+		minX = mi;
+		maxX = mx;
+
+		alert("Time axis: " + new Date(mi * 60000) + "--" + new Date(mx*60000) + ", step: " + o);
+		n = [];
+		while (mi <= mx) {
+			n.push(new Date(mi * 60000));
+			mi += o;
+		}
+		alert("times: " + n);
+	}
+	
+	
+	// Y labels
+	var Y_LABELS_NUM = 6;
+	var maxY = Number.MIN_VALUE;
+	var minY = Number.MAX_VALUE;
+	if (data.yLabels) {
+		for (var i in data.yLabels) {
+			if (data.yLabels[i] > maxY) maxY = data.yLabels[i];
+			if (data.yLabels[i] < minY) minY = data.yLabels[i];
+		}
+		
+		for (var i in data.yLabels) {
+			addYLabel(data.yLabels[i] + "", tY(data.yLabels[i]));			
+		}
+	} else {
+		
+		for (var i=0; i<data.points.length; i += 2) {
+			if (data.points[i+1] > maxY) maxY = data.points[i+1];
+			if (data.points[i+1] < minY) minY = data.points[i+1];
+		}
+		
+		alert("y: " + minY + " -- " + maxY);
+		var o, mi,mx;
+		for (var i in valueRow) {
+			mi = minY - (minY % valueRow[i]);
+			mx = maxY + (valueRow[i] - (maxY % valueRow[i]));
+			if ((mx - mi) / valueRow[i]  <= Y_LABELS_NUM) {
+				o = valueRow[i];
+				break;
+			}
+		}
+		
+		alert("mi:" + mi + ", mx:" + mx + ", o:" + o);
+		
+		
+		minY = mi;
+		maxY = mx;
+		while (mi <= mx) {
+			addYLabel(mi + "", tY(mi));
+			mi += o;
+		}
+	}
+	
+	
+	
+	
+	
+	
 	
 	addXbLabel(printDate(n[0]), tX(n[0].getTime()/60000));
 
@@ -146,9 +222,7 @@ function timeGraph(parent, data) {
 		}
 	}
 	
-	for (var i in data.yLabels) {
-		addYLabel(data.yLabels[i] + "", tY(data.yLabels[i]));			
-	}
+	
 	
 	for (var i=0; i<data.points.length; i += 2) {							
 		addPoint(tX(Date.parse(data.points[i]) / 60000), tY(data.points[i+1]));
